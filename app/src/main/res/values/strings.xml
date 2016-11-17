@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">LED Controller</string>
+    <string name="action_settings">Settings</string>
+    <string name="arg_placeholder">ARG_PLACEHOLDER</string>
+    <string name="pattern_label_text">Pattern:</string>
+    <string name="anim_speed_text">Animation Speed</string>
+    <string name="anim_step_text">Animation Step</string>
+</resources>

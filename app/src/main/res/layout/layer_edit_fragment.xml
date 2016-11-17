@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:padding="@dimen/fab_margin"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:id="@+id/patternLabel"
+            android:text="@string/pattern_label_text" />
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/patternLabel"
+            android:layout_alignParentEnd="true"
+            android:id="@+id/patternSpinner" />
+
+    </RelativeLayout>
+
+    <include
+        android:id="@+id/arg1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/parameter_row_slider" />
+
+    <include
+        android:id="@+id/arg2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/parameter_row_slider" />
+
+    <include
+        android:id="@+id/arg3"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/parameter_row_slider" />
+
+    <include
+        android:id="@+id/animSpeed"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/parameter_row_slider" />
+
+    <include
+        android:id="@+id/animStep"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/parameter_row_slider" />
+</LinearLayout>
