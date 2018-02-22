@@ -67,6 +67,18 @@ public class LedState implements Serializable {
                     "a" + layerNum + "," + realAnimSpeed + "\n" +
                     "t" + layerNum + "," + animStep + "\n";
         }
+
+        public void setPattern(int n) {
+            // Reset args if changing pattern -- don't want to give bad data
+            if(n != patternNum) {
+                for (int i = 0; i < args.size(); i++) {
+                    args.set(i, 0);
+                }
+                animSpeed = 500;
+                animStep = 1;
+            }
+            patternNum = n;
+        }
     }
 
     // Store arguments from message

@@ -38,7 +38,8 @@ public class LayerEditFragment extends Fragment implements
     private ParameterRowSliderWrapper mAnimSpeed;
     private ParameterRowSliderWrapper mAnimStep;
 
-    @BindView(R.id.patternSpinner) Spinner mPatternSpinner;
+    @BindView(R.id.patternSpinner)
+    Spinner mPatternSpinner;
 
     public static LayerEditFragment create(int layerNum) {
         LayerEditFragment f = new LayerEditFragment();
@@ -50,7 +51,8 @@ public class LayerEditFragment extends Fragment implements
         return f;
     }
 
-    public LayerEditFragment() { }
+    public LayerEditFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -95,10 +97,14 @@ public class LayerEditFragment extends Fragment implements
     public class ParameterRowSliderWrapper implements SeekBar.OnSeekBarChangeListener {
         private ViewGroup mParent;
         private SeekBar.OnSeekBarChangeListener mListener;
-        @BindView(R.id.argSeekBar) SeekBar mArgSeek;
-        @BindView(R.id.argName) TextView mArgNameText;
-        @BindView(R.id.argValue) TextView mArgValueText;
-        private int mStart;
+        @BindView(R.id.argSeekBar)
+        SeekBar mArgSeek;
+        @BindView(R.id.argName)
+        TextView mArgNameText;
+        @BindView(R.id.argValue)
+        TextView mArgValueText;
+
+        int mMinVal;
 
         public ParameterRowSliderWrapper(ViewGroup parent, SeekBar.OnSeekBarChangeListener listener) {
             mParent = parent;
@@ -112,15 +118,19 @@ public class LayerEditFragment extends Fragment implements
         }
 
         public void configure(String name, int start, int end, int value) {
-            mStart = start;
+            value = Math.max(start, Math.min(end, value)); // Ensure good range
+            mMinVal = start;
+
             mArgSeek.setMax(end - start);
-            mArgSeek.setProgress(value + mStart);
+            mArgSeek.setMin(0);
+            mArgSeek.setProgress(value - start);
+            Log.d(TAG, "MIN: " + mArgSeek.getMin() + " MAX: " + mArgSeek.getMax());
             mArgNameText.setText(WordUtils.capitalize(name));
             mParent.setVisibility(View.VISIBLE);
         }
 
         public int getValue() {
-            return mArgSeek.getProgress() + mStart;
+            return mArgSeek.getProgress() + mMinVal;
         }
 
         public void disable() {
@@ -129,19 +139,22 @@ public class LayerEditFragment extends Fragment implements
 
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            mArgValueText.setText(Integer.toString(progress + mStart));
-            mListener.onProgressChanged(seekBar, progress, fromUser);
+            Log.d(TAG, "PROGRESS: " + progress + " of " + seekBar.getMax());
+            mArgValueText.setText(Integer.toString(progress + mMinVal));
+            mListener.onProgressChanged(seekBar, progress + mMinVal, fromUser);
         }
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-            mArgValueText.setText(Integer.toString(seekBar.getProgress() + mStart));
+            Log.d(TAG, "PROGRESS START: " + seekBar.getProgress() + " of " + seekBar.getMax());
+            mArgValueText.setText(Integer.toString(seekBar.getProgress() + mMinVal));
             mListener.onStartTrackingTouch(seekBar);
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            mArgValueText.setText(Integer.toString(seekBar.getProgress() + mStart));
+            Log.d(TAG, "PROGRESS STOP: " + seekBar.getProgress() + " of " + seekBar.getMax());
+            mArgValueText.setText(Integer.toString(seekBar.getProgress() + mMinVal));
             mListener.onStopTrackingTouch(seekBar);
         }
     }
@@ -150,7 +163,7 @@ public class LayerEditFragment extends Fragment implements
     public void onDestroyView() {
         super.onDestroyView();
 
-        if(mService != null) {
+        if (mService != null) {
             mService.removeLedControllerListener(this);
             getContext().unbindService(this);
             mService = null;
@@ -160,7 +173,7 @@ public class LayerEditFragment extends Fragment implements
 
     @Override
     public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-        if(fromUser) {
+        if (fromUser) {
             writeState(false);
         }
     }
@@ -175,16 +188,16 @@ public class LayerEditFragment extends Fragment implements
     }
 
     public void writeState(boolean isFinal) {
-        if(mLedState == null) return;
+        if (mLedState == null) return;
 
         LedState.LayerSettings layer = mLedState.getLayer(mLayerNum);
-        for(int i = 0; i < mArgs.size(); i++) {
+        for (int i = 0; i < mArgs.size(); i++) {
             layer.args.set(i, mArgs.get(i).getValue());
         }
         layer.animSpeed = mAnimSpeed.getValue();
         layer.animStep = mAnimStep.getValue();
 
-        if(isFinal) {
+        if (isFinal) {
             mService.sendCommand(layer.getConfigCommand());
         } else {
             mService.sendCommandIfReady(layer.getConfigCommand());
@@ -194,22 +207,22 @@ public class LayerEditFragment extends Fragment implements
     }
 
     public void loadState() {
-        if(mLedState == null) return;
+        if (mLedState == null) return;
 
         LedState.LayerSettings layer = mLedState.getLayer(mLayerNum);
 
         mPatternArray.clear();
-        for(LedState.PatternInfo p : mLedState.patterns) {
+        for (LedState.PatternInfo p : mLedState.patterns) {
             mPatternArray.add(p.name);
         }
         mPatternSpinner.setSelection(layer.patternNum);
 
-        for(int i = 0; i < mArgs.size() && layer.patternNum < mLedState.patterns.size(); i++) {
+        for (int i = 0; i < mArgs.size() && layer.patternNum < mLedState.patterns.size(); i++) {
             LedState.PatternInfo pat = mLedState.patterns.get(layer.patternNum);
-            if(i < pat.args.size() && i < mArgs.size() && i < layer.args.size()) {
+            if (i < pat.args.size() && i < mArgs.size() && i < layer.args.size()) {
                 LedState.PatternArgInfo arg = pat.args.get(i);
                 mArgs.get(i).configure(arg.name, arg.start, arg.end, layer.args.get(i));
-            } else if(i < mArgs.size()) {
+            } else if (i < mArgs.size()) {
                 mArgs.get(i).disable();
             }
         }
@@ -220,14 +233,14 @@ public class LayerEditFragment extends Fragment implements
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        mLedState.getLayer(mLayerNum).patternNum = position;
+        mLedState.getLayer(mLayerNum).setPattern(position);
         loadState();
         writeState(true);
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-        mLedState.getLayer(mLayerNum).patternNum = 0;
+        mLedState.getLayer(mLayerNum).setPattern(0);
         writeState(true);
     }
 
